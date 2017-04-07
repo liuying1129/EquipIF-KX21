@@ -335,7 +335,7 @@ var
 begin
   for i :=1  to length(Value) do
   begin
-    if ord(Value[i])<32 then CONTINUE;//32为空格代表的字符，按理应该是最小值了
+    //if ord(Value[i])<32 then CONTINUE;//32为空格代表的字符，按理应该是最小值了
 
     result:=result+' '+inttostr(ord(Value[i]));
   end;
@@ -443,6 +443,7 @@ var
   FInts:OleVariant;
   ReceiveItemInfo:OleVariant;
   i:integer;
+  sCheckDate:string;
   
   WBCCSTR:string;
   WBCOSTR:string;
@@ -459,6 +460,11 @@ begin
   memo1.Lines.Add(Str);
 
   SpecNo:=GetSpecNo(Str);
+
+  //K-1000格式说明，年、月、日的顺序受仪器中的设置影响
+  //The order of the date conforms to the format in the setting program
+  if uppercase(OutFormat)='K-DPS' then sCheckDate:='20'+trim(copy(Str,2,2))+'-'+trim(copy(Str,5,2))+'-'+trim(copy(Str,8,2))+' '+copy(Str,10,5)
+  else sCheckDate:='20'+copy(Str,5,2)+'-'+copy(Str,7,2)+'-'+copy(Str,9,2);
 
   //分解直方图数据
   WBCCSTR:=COPY(Str,243,50);
@@ -478,7 +484,7 @@ begin
 
   for  i:=1  to 21 do
   begin
-    if i=1 then ZFTSTR:=WBCOSTR else if i=2 then ZFTSTR:=RBCOSTR else if i=3 then ZFTSTR:=PLTOSTR else ZFTSTR:='';//待定
+    if i=1 then ZFTSTR:=WBCOSTR else if i=2 then ZFTSTR:=RBCOSTR else if i=8 then ZFTSTR:=PLTOSTR else ZFTSTR:='';
     if uppercase(OutFormat)='K-DPS' then sValue:=trim(copy(rfm2,(i-1)*5+1,5)) else sValue:=copy(rfm2,(i-1)*5+1,4);;
     ReceiveItemInfo[i-1]:=VarArrayof([inttostr(i),sValue,ZFTSTR,'']);
   end;
@@ -486,7 +492,7 @@ begin
   if bRegister then
   begin
     FInts :=CreateOleObject('Data2LisSvr.Data2Lis');
-    FInts.fData2Lis(ReceiveItemInfo,(SpecNo),'',
+    FInts.fData2Lis(ReceiveItemInfo,(SpecNo),sCheckDate,
       (GroupName),(SpecType),(SpecStatus),(EquipChar),
       (CombinID),'',(LisFormCaption),(ConnectString),
       (QuaContSpecNoG),(QuaContSpecNo),(QuaContSpecNoD),'',
